@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-CITYSCAPES_DATASET=/home/zhengxiawu/data/cityscapes/gtFine_trainvaltest CITYSCAPES_RESULTS=/home/zhengxiawu/work/ESPNet/test/results/ESPnet_C_my_train CITYSCAPES_EXPORT_DIR=/home/zhengxiawu/work/ESPNet/test/results/ESPnet_C_my_train csEvalPixelLevelSemanticLabeling
+CITYSCAPES_DATASET=/home/zhengxiawu/data/cityscapes/gtFine_trainvaltest CITYSCAPES_RESULTS=/home/zhengxiawu/work/real_time_seg/result/Espnet_C_cityscape CITYSCAPES_EXPORT_DIR=/home/zhengxiawu/work/real_time_seg/result/ csEvalPixelLevelSemanticLabeling

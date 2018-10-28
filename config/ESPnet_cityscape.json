@@ -1,6 +1,6 @@
 {
-  "name": "Espnet_C_cityscape",
-  "gpu_num":1,
+  "name": "Espnet_encoder_cityscape",
+  "gpu_num":2,
   "visulize": true,
   "resume":false,
   "resumeLoc":null,
@@ -19,6 +19,8 @@
     "width":1024,
     "height":512,
     "scale_in":8,
+    "val_data_dir":"/home/zhengxiawu/data/cityscapes/leftImg8bit/val",
+    "img_suffix":"png",
 
     "train_args":{
       "scale":[[1536,768],[1280,720],[768,384],[512, 256],[1024,512]],

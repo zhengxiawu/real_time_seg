@@ -4,10 +4,12 @@ from torch.autograd import Variable
 import glob
 import cv2
 from PIL import Image as PILImage
-import Model as Net
+from models import Espnet as Net
 import os
 import time
 from argparse import ArgumentParser
+import json
+import pickle
 
 pallete = [128, 64, 128,
            244, 35, 232,
@@ -61,17 +63,57 @@ def relabel(img):
     return img
 
 
-def evaluateModel(args, model, up, image_list):
-    # gloabl mean and std values
-    mean = [72.3923111, 82.90893555, 73.15840149]
-    std = [45.3192215, 46.15289307, 44.91483307]
+def main():
+    #define the parameters
+    # load config file
+    model_path = '/home/zhengxiawu/work/real_time_seg'
+    model_num = 90
+    # load config
+    config_file = os.path.join(model_path, 'config/ESPnet_cityscape.json')
+    config = json.load(open(config_file))
 
+    # set file name
+    data_dir = os.path.join(model_path, config['DATA']['data_dir'])
+    data_cache_file = os.path.join(data_dir, config['DATA']['cached_data_file'])
+    save_dir = os.path.join(model_path, 'para', config['name']) + '/'
+    result_save_dir = os.path.join(model_path, 'result', config['name'])
+    weight_file = os.path.join(save_dir,'model_'+str(model_num)+'.pth')
+
+    assert os.path.isfile(weight_file),"no weight file!!!"
+
+    # data hyper parameters
+    classes = config['DATA']['classes']
+    scale_in = config['DATA']['scale_in']
+    val_data_dir = config['DATA']['val_data_dir']
+    img_suffix = config['DATA']['img_suffix']
+    data_name = config['DATA']['name']
+
+    if not os.path.exists(result_save_dir):
+        os.mkdir(result_save_dir)
+
+    # read all the images in the folder
+    image_list = glob.glob(val_data_dir + os.sep + '*/*.' + img_suffix)
+
+    data = pickle.load(open(data_cache_file, "rb"))
+    up = torch.nn.Upsample(scale_factor=scale_in, mode='bilinear')
+    up.cuda()
+    if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
+        from models import Espnet
+        model = Espnet.ESPNet(classes, 2, 8)
+    elif config['MODEL']['name'] == 'ESpnet_2_8':
+        from models import Espnet
+        model = Espnet.ESPNet_Encoder(classes, 2, 8)
+    model.load_state_dict(torch.load(weight_file))
+    model.cuda()
+    model.eval()
+
+    total_time = 0
     for i, imgName in enumerate(image_list):
         img = cv2.imread(imgName).astype(np.float32)
         for j in range(3):
-            img[:, :, j] -= mean[j]
+            img[:, :, j] -= data['mean'][j]
         for j in range(3):
-            img[:, :, j] /= std[j]
+            img[:, :, j] /= data['std'][j]
 
         # resize the image to 1024x512x3
         img = cv2.resize(img, (1024, 512))
@@ -82,15 +124,18 @@ def evaluateModel(args, model, up, image_list):
         img_tensor = torch.unsqueeze(img_tensor, 0)  # add a batch dimension
         with torch.no_grad():
             img_variable = Variable(img_tensor)
-        if args.gpu:
-            img_variable = img_variable.cuda()
+        img_variable = img_variable.cuda()
+        torch.cuda.synchronize()
         time_start = time.time()
         img_out = model(img_variable)
+        torch.cuda.synchronize()
         time_end = time.time()
+
+        total_time += (time_end-time_start)
         print time_end-time_start
 
-        if args.modelType == 2:
-            img_out = up(img_out)
+
+        img_out = up(img_out)
 
         classMap_numpy = img_out[0].max(0)[1].byte().cpu().data.numpy()
 
@@ -99,81 +144,20 @@ def evaluateModel(args, model, up, image_list):
 
         name = imgName.split('/')[-1]
 
-        if args.colored:
+        if data_name == 'cityscape':
+            classMap_numpy = relabel(classMap_numpy.astype(np.uint8))
+            classMap_numpy = cv2.resize(classMap_numpy, (2048, 1024), interpolation=cv2.INTER_NEAREST)
+        else:
             classMap_numpy_color = PILImage.fromarray(classMap_numpy)
             classMap_numpy_color.putpalette(pallete)
-            classMap_numpy_color.save(args.savedir + os.sep + 'c_' + name.replace(args.img_extn, 'png'))
-
-        if args.cityFormat:
-            classMap_numpy = relabel(classMap_numpy.astype(np.uint8))
-            classMap_numpy = cv2.resize(classMap_numpy,(2048, 1024),interpolation=cv2.INTER_NEAREST)
-
-        cv2.imwrite(args.savedir + os.sep + name.replace(args.img_extn, 'png'), classMap_numpy)
+            classMap_numpy_color.save(result_save_dir + os.sep + 'c_' + name.replace(img_suffix, 'png'))
 
 
-def main(args):
-    # read all the images in the folder
-    image_list = glob.glob(args.data_dir + os.sep + '*/*.' + args.img_extn)
+        cv2.imwrite(result_save_dir + os.sep + name.replace(img_suffix, 'png'), classMap_numpy)
 
-    up = None
-    if args.modelType == 2:
-        up = torch.nn.Upsample(scale_factor=8, mode='bilinear')
-        if args.gpu:
-            up = up.cuda()
-
-    p = args.p
-    q = args.q
-    classes = 20
-    if args.modelType == 2:
-        modelA = Net.ESPNet_Encoder(classes, p, q)  # Net.Mobile_SegNetDilatedIA_C_stage1(20)
-        model_weight_file = '/home/zhengxiawu/work/ESPNet/train/results_enc__enc_2_8/model_316.pth'
-        # model_weight_file = args.weightsDir + os.sep + 'encoder' + os.sep + 'espnet_p_' + str(p) + '_q_' + str(
-        #     q) + '.pth'
-        if not os.path.isfile(model_weight_file):
-            print('Pre-trained model file does not exist. Please check ../pretrained/encoder folder')
-            exit(-1)
-        modelA.load_state_dict(torch.load(model_weight_file))
-    elif args.modelType == 1:
-        modelA = Net.ESPNet(classes, p, q)  # Net.Mobile_SegNetDilatedIA_C_stage1(20)
-        model_weight_file = args.weightsDir + os.sep + 'decoder' + os.sep + 'espnet_p_' + str(p) + '_q_' + str(q) + '.pth'
-        if not os.path.isfile(model_weight_file):
-            print('Pre-trained model file does not exist. Please check ../pretrained/decoder folder')
-            exit(-1)
-        modelA.load_state_dict(torch.load(model_weight_file))
-    else:
-        print('Model not supported')
-    # modelA = torch.nn.DataParallel(modelA)
-    if args.gpu:
-        modelA = modelA.cuda()
-
-    # set to evaluation mode
-    modelA.eval()
-
-    if not os.path.isdir(args.savedir):
-        os.mkdir(args.savedir)
-
-    evaluateModel(args, modelA, up, image_list)
-
+    print 'inference time is:'+str(float(total_time)/float(len(image_list)))
+    print 'done'
 
 if __name__ == '__main__':
-    parser = ArgumentParser()
-    parser.add_argument('--model', default="ESPNet", help='Model name')
-    parser.add_argument('--data_dir', default="/home/zhengxiawu/data/cityscapes/leftImg8bit/val", help='Data directory')
-    parser.add_argument('--img_extn', default="png", help='RGB Image format')
-    parser.add_argument('--inWidth', type=int, default=1024, help='Width of RGB image')
-    parser.add_argument('--inHeight', type=int, default=512, help='Height of RGB image')
-    parser.add_argument('--scaleIn', type=int, default=8, help='For ESPNet-C, scaleIn=8. For ESPNet, scaleIn=1')
-    parser.add_argument('--modelType', type=int, default=2, help='1=ESPNet, 2=ESPNet-C')
-    parser.add_argument('--savedir', default='/home/zhengxiawu/work/ESPNet/test/results/ESPnet_C_my_train', help='directory to save the results')
-    parser.add_argument('--gpu', default=True, type=bool, help='Run on CPU or GPU. If TRUE, then GPU.')
-    parser.add_argument('--decoder', type=bool, default=False,
-                        help='True if ESPNet. False for ESPNet-C')  # False for encoder
-    parser.add_argument('--weightsDir', default='/home/zhengxiawu/work/ESPNet/train/results_enc__enc_2_8/', help='Pretrained weights directory.')
-    parser.add_argument('--p', default=2, type=int, help='depth multiplier. Supported only 2')
-    parser.add_argument('--q', default=8, type=int, help='depth multiplier. Supported only 3, 5, 8')
-    parser.add_argument('--cityFormat', default=True, type=bool, help='If you want to convert to cityscape '
-                                                                       'original label ids')
-    parser.add_argument('--colored', default=False, type=bool, help='If you want to visualize the '
-                                                                   'segmentation masks in color')
 
-    main(parser.parse_args())
+    main()

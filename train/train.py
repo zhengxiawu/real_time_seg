@@ -45,14 +45,14 @@ def val(classes, val_loader, model, criterion):
         # compute the loss
         loss = criterion(output, target_var)
 
-        epoch_loss.append(loss.data[0])
+        epoch_loss.append(loss.item())
 
         time_taken = time.time() - start_time
 
         # compute the confusion matrix
         iouEvalVal.addBatch(output.max(1)[1].data, target_var.data)
 
-        print('[%d/%d] loss: %.3f time: %.2f' % (i, total_batches, loss.data[0], time_taken))
+        print('[%d/%d] loss: %.3f time: %.2f' % (i, total_batches, loss.item(), time_taken))
 
     average_epoch_loss_val = sum(epoch_loss) / len(epoch_loss)
 
@@ -174,9 +174,9 @@ def multi_scale_loader(scales,random_crop_size,scale_in, batch_size, data):
     return data_loader
 if __name__ == '__main__':
     #load config file
-    model_path = '/home/zhengxiawu/work/Real_time_segmentation'
+    model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/ESPnet_cityscape.json')
+    config_file = os.path.join(model_path, 'config/ESPnet_decoder_cityscape.json')
     config = json.load(open(config_file))
 
     #set file name
@@ -214,7 +214,12 @@ if __name__ == '__main__':
     #get model
     if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
         from models import Espnet
-        model = Espnet.ESPNet(classes, 2, 8)
+        if config['pre_train']:
+            pre_train_path = os.path.join(model_path,config['pre_train_path'])
+            model = Espnet.ESPNet(classes, 2, 8, pre_train_path)
+        else:
+            model = Espnet.ESPNet(classes, 2, 8)
+
     elif config['MODEL']['name'] == 'ESpnet_2_8':
         from models import Espnet
         model = Espnet.ESPNet_Encoder(classes, 2, 8)
@@ -338,6 +343,7 @@ if __name__ == '__main__':
 
         #save the best
         if best_mIOU < mIOU_val:
+            best_mIOU = mIOU_val
             model_file_name = save_dir + 'best.pth'
             torch.save(model.state_dict(), model_file_name)
             with open(save_dir + 'best.txt', 'w') as log:
