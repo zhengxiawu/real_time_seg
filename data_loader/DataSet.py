@@ -1,6 +1,7 @@
 import torch
 import cv2
 import torch.utils.data
+import scipy.misc as m
 
 __author__ = "Sachin Mehta"
 __license__ = "GPL"
@@ -22,7 +23,7 @@ class MyDataset(torch.utils.data.Dataset):
     '''
     Class to load the dataset
     '''
-    def __init__(self, imList, labelList, transform=None):
+    def __init__(self, imList, labelList, transform=None, data_name = 'cityscape'):
         '''
         :param imList: image list (Note that these lists have been processed and pickled using the loadData.py)
         :param labelList: label list (Note that these lists have been processed and pickled using the loadData.py)
@@ -31,6 +32,7 @@ class MyDataset(torch.utils.data.Dataset):
         self.imList = imList
         self.labelList = labelList
         self.transform = transform
+        self.data_name = data_name
 
     def __len__(self):
         return len(self.imList)
@@ -44,9 +46,13 @@ class MyDataset(torch.utils.data.Dataset):
         image_name = self.imList[idx]
         label_name = self.labelList[idx]
         image = cv2.imread(image_name)
-        label = cv2.imread(label_name, 0)
-        label = replace_city_labels(label)
-        label[label == 255] = 19
+        if self.data_name == 'cityscape':
+            label = cv2.imread(label_name, 0)
+            label = replace_city_labels(label)
+            label[label == 255] = 19
+        elif self.data_name == 'camVid':
+            label = m.imread(label_name)
+            label = np.array(label,dtype='float32')
         if self.transform:
             [image, label] = self.transform(image, label)
         return (image, label)

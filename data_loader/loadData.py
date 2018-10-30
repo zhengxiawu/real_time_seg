@@ -2,6 +2,7 @@ import pickle
 
 import cv2
 import numpy as np
+import scipy.misc as m
 
 from cityscape import cityscapes_labels
 __author__ = "Sachin Mehta"
@@ -23,7 +24,7 @@ class LoadData:
     '''
     Class to laod the data
     '''
-    def __init__(self, data_dir, classes, cached_data_file, normVal=1.10):
+    def __init__(self, data_dir, classes, cached_data_file, normVal=1.10, dataset = 'cityscape'):
         '''
         :param data_dir: directory where the dataset is kept
         :param classes: number of classes in the dataset
@@ -41,6 +42,7 @@ class LoadData:
         self.trainAnnotList = list()
         self.valAnnotList = list()
         self.cached_data_file = cached_data_file
+        self.dataset = dataset
 
     def compute_class_weights(self, histogram):
         '''
@@ -76,9 +78,14 @@ class LoadData:
                 # print label_file
                 # img_file = ((self.data_dir).strip()  + line_arr[0].strip()).strip()
                 # label_file = ((self.data_dir).strip() + line_arr[1].strip()).strip()
-                label_img = cv2.imread(label_file, 0)
-                label_img = replace_city_labels(label_img)
-                label_img[label_img == 255] = 19
+                if self.dataset == 'cityscape':
+                    label_img = cv2.imread(label_file, 0)
+                    label_img = replace_city_labels(label_img)
+                    label_img[label_img == 255] = 19
+                elif self.dataset == 'camVid':
+                    label_img = m.imread(label_file)
+                    label_img = np.array(label_img)
+
                 unique_values = np.unique(label_img)
                 max_val = max(unique_values)
                 min_val = min(unique_values)
@@ -129,8 +136,13 @@ class LoadData:
         print('Processing training data')
         return_val = self.readFile('train.txt', True)
 
-        print('Processing validation data')
-        return_val1 = self.readFile('val.txt')
+        if self.dataset == 'cityscape':
+            print('Processing validation data')
+            return_val1 = self.readFile('val.txt')
+        elif self.dataset == 'camVid':
+            # in cam Vid the dataset is split as train test val
+            print('Processing test data')
+            return_val1 = self.readFile('test.txt')
 
         print('Pickling data')
         if return_val ==0 and return_val1 ==0:

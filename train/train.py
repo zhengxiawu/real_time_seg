@@ -166,7 +166,7 @@ def multi_scale_loader(scales,random_crop_size,scale_in, batch_size, data):
             torch.utils.data.DataLoader(myDataLoader.MyDataset(
                    data['trainIm'],
                    data['trainAnnot'],
-                   transform=this_transform),
+                   transform=this_transform,data_name=data['name']),
                    batch_size=batch_size,
                    shuffle=True,
                    num_workers=8,
@@ -176,7 +176,7 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/ESPnet_decoder_cityscape.json')
+    config_file = os.path.join(model_path, 'config/Espnet_encoder_camVid.json')
     config = json.load(open(config_file))
 
     #set file name
@@ -193,6 +193,7 @@ if __name__ == '__main__':
     scale_in = config['DATA']['scale_in']
     val_scale = config['DATA']['val_args']['scale']
     batch_size = config['DATA']['train_args']['batch_size']
+    data_name = config['DATA']['name']
 
     #network hyper parameters
     lr = config['lr']
@@ -203,7 +204,7 @@ if __name__ == '__main__':
     os.environ['CUDA_VISIBLE_DEVICES'] = str(config['gpu_num'])
     #load the dataset
     if not os.path.isfile(data_cache_file):
-        dataLoad = loadData.LoadData(data_dir,config['DATA']['classes'],data_cache_file)
+        dataLoad = loadData.LoadData(data_dir,config['DATA']['classes'],data_cache_file,dataset=data_name)
         data = dataLoad.processData()
         if data is None:
             print('Error while pickling data. Please check.')
@@ -211,6 +212,7 @@ if __name__ == '__main__':
     else:
         data = pickle.load(open(data_cache_file, "rb"))
 
+    data['name'] = data_name
     #get model
     if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
         from models import Espnet

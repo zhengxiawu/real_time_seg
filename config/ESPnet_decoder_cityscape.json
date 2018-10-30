@@ -21,6 +21,8 @@
     "width":1024,
     "height":512,
     "scale_in":1,
+    "val_data_dir":"/home/zhengxiawu/data/cityscapes/leftImg8bit/val",
+    "img_suffix":"png",
 
     "train_args":{
       "scale":[[1536,768],[1280,720],[768,384],[512, 256],[1024,512]],

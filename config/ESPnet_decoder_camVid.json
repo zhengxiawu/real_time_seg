@@ -1,5 +1,5 @@
 {
-  "name": "Espnet_cityscape",
+  "name": "Espnet_camVid",
   "gpu_num":0,
   "visulize": true,
   "resume":false,
@@ -8,14 +8,14 @@
   "lr":5e-4,
   "lr_step":100,
   "save_step":5,
-  "pre_train":true,
-  "pre_train_path":"para/Espnet_C_cityscape/model_90.pth",
+  "pre_train":false,
+  "pre_train_path":"",
   "MODEL":{
     "name":"ESpnet_2_8_decoder"
   },
   "DATA":{
     "name":"cityscape",
-    "data_dir":"data_loader/cityscape/",
+    "data_dir":"data_loader/camVid/",
     "cached_data_file":"city.p",
     "classes": 20,
     "width":1024,

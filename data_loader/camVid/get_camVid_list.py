@@ -5,13 +5,13 @@ import glob
 def get_cityscapes_list_augmented(root, image_path, label_path, lst_path, is_fine=True, sample_rate=1, is_train = True):
     index = 0
     train_lst = []
-    label_prefix = 'gtFine_labelIds' if is_fine else 'gtCoarse_labelIds'
+
 
     # images
-    all_images = glob.glob(os.path.join(root, image_path, '*/*.png'))
+    all_images = glob.glob(os.path.join(image_path, '*.png'))
     all_images.sort()
     for p in all_images:
-        l = p.replace(image_path, label_path).replace('leftImg8bit', label_prefix)
+        l = p.replace('test', 'testannot')
         if os.path.isfile(l):
             index += 1
             if index % 100 == 0:
@@ -31,9 +31,9 @@ def get_cityscapes_list_augmented(root, image_path, label_path, lst_path, is_fin
         train_out.write(line+'\n')
     train_out.close()
 if __name__ == '__main__':
-    train_val = 'val'
+    train_val = 'test'
     root = '/home/zhengxiawu/data/cityscapes/gtFine_trainvaltest'
-    image_path = '/home/zhengxiawu/data/cityscapes/leftImg8bit/'+train_val+'/'
-    label_path = '/home/zhengxiawu/data/cityscapes/gtFine_trainvaltest/gtFine/'+train_val+'/'
+    image_path = '/home/zhengxiawu/data/CamVid/test/'
+    label_path = '/home/zhengxiawu/data/CamVid/testannot/'
     lst_path = train_val+'.txt'
     get_cityscapes_list_augmented(root, image_path, label_path, lst_path, is_fine=True, sample_rate=1,is_train=False)

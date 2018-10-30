@@ -10,6 +10,8 @@ import time
 from argparse import ArgumentParser
 import json
 import pickle
+import torch.backends.cudnn as cudnn
+cudnn.benchmark = True
 
 pallete = [128, 64, 128,
            244, 35, 232,
@@ -69,7 +71,7 @@ def main():
     model_path = '/home/zhengxiawu/work/real_time_seg'
     model_num = 90
     # load config
-    config_file = os.path.join(model_path, 'config/ESPnet_cityscape.json')
+    config_file = os.path.join(model_path, 'config/ESPnet_decoder_cityscape.json')
     config = json.load(open(config_file))
 
     # set file name
@@ -77,7 +79,7 @@ def main():
     data_cache_file = os.path.join(data_dir, config['DATA']['cached_data_file'])
     save_dir = os.path.join(model_path, 'para', config['name']) + '/'
     result_save_dir = os.path.join(model_path, 'result', config['name'])
-    weight_file = os.path.join(save_dir,'model_'+str(model_num)+'.pth')
+    weight_file = '/home/zhengxiawu/work/real_time_seg/pretrained/decoder/espnet_p_2_q_8.pth'
 
     assert os.path.isfile(weight_file),"no weight file!!!"
 
@@ -99,10 +101,10 @@ def main():
     up.cuda()
     if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
         from models import Espnet
-        model = Espnet.ESPNet(classes, 2, 8)
+        model = Espnet.ESPNet(classes, 2, 8, mode='test')
     elif config['MODEL']['name'] == 'ESpnet_2_8':
         from models import Espnet
-        model = Espnet.ESPNet_Encoder(classes, 2, 8)
+        model = Espnet.ESPNet_Encoder(classes, 2, 8, mode='test')
     model.load_state_dict(torch.load(weight_file))
     model.cuda()
     model.eval()
@@ -117,7 +119,7 @@ def main():
 
         # resize the image to 1024x512x3
         img = cv2.resize(img, (1024, 512))
-
+        #img = cv2.resize(img, (2048, 1024))
         img /= 255
         img = img.transpose((2, 0, 1))
         img_tensor = torch.from_numpy(img)
@@ -125,17 +127,18 @@ def main():
         with torch.no_grad():
             img_variable = Variable(img_tensor)
         img_variable = img_variable.cuda()
-        torch.cuda.synchronize()
+        #torch.cuda.synchronize()
         time_start = time.time()
         img_out = model(img_variable)
-        torch.cuda.synchronize()
+        img_out = img_out+0
         time_end = time.time()
+        #torch.cuda.synchronize()
 
         total_time += (time_end-time_start)
         print time_end-time_start
 
-
-        img_out = up(img_out)
+        if scale_in > 1:
+            img_out = up(img_out)
 
         classMap_numpy = img_out[0].max(0)[1].byte().cpu().data.numpy()
 
