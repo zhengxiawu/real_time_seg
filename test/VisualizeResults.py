@@ -11,6 +11,9 @@ from argparse import ArgumentParser
 import json
 import pickle
 import torch.backends.cudnn as cudnn
+from test.IOUEval import iouEval
+import scipy.misc as m
+from data_loader import DataSet
 cudnn.benchmark = True
 
 pallete = [128, 64, 128,
@@ -77,7 +80,6 @@ def main():
     # set file name
     data_dir = os.path.join(model_path, config['DATA']['data_dir'])
     data_cache_file = os.path.join(data_dir, config['DATA']['cached_data_file'])
-    save_dir = os.path.join(model_path, 'para', config['name']) + '/'
     result_save_dir = os.path.join(model_path, 'result', config['name'])
     weight_file = '/home/zhengxiawu/work/real_time_seg/pretrained/decoder/espnet_p_2_q_8.pth'
 
@@ -86,17 +88,19 @@ def main():
     # data hyper parameters
     classes = config['DATA']['classes']
     scale_in = config['DATA']['scale_in']
-    val_data_dir = config['DATA']['val_data_dir']
     img_suffix = config['DATA']['img_suffix']
     data_name = config['DATA']['name']
+
 
     if not os.path.exists(result_save_dir):
         os.mkdir(result_save_dir)
 
     # read all the images in the folder
-    image_list = glob.glob(val_data_dir + os.sep + '*/*.' + img_suffix)
+    #image_list = glob.glob(val_data_dir + os.sep + '*/*.' + img_suffix)
+
 
     data = pickle.load(open(data_cache_file, "rb"))
+    image_list = data['valIm']
     up = torch.nn.Upsample(scale_factor=scale_in, mode='bilinear')
     up.cuda()
     if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
@@ -108,7 +112,6 @@ def main():
     model.load_state_dict(torch.load(weight_file))
     model.cuda()
     model.eval()
-
     total_time = 0
     for i, imgName in enumerate(image_list):
         img = cv2.imread(imgName).astype(np.float32)
@@ -130,7 +133,6 @@ def main():
         #torch.cuda.synchronize()
         time_start = time.time()
         img_out = model(img_variable)
-        img_out = img_out+0
         time_end = time.time()
         #torch.cuda.synchronize()
 
@@ -146,7 +148,6 @@ def main():
             print(i)
 
         name = imgName.split('/')[-1]
-
         if data_name == 'cityscape':
             classMap_numpy = relabel(classMap_numpy.astype(np.uint8))
             classMap_numpy = cv2.resize(classMap_numpy, (2048, 1024), interpolation=cv2.INTER_NEAREST)
@@ -154,7 +155,6 @@ def main():
             classMap_numpy_color = PILImage.fromarray(classMap_numpy)
             classMap_numpy_color.putpalette(pallete)
             classMap_numpy_color.save(result_save_dir + os.sep + 'c_' + name.replace(img_suffix, 'png'))
-
 
         cv2.imwrite(result_save_dir + os.sep + name.replace(img_suffix, 'png'), classMap_numpy)
 

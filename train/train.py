@@ -176,7 +176,7 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/Espnet_encoder_camVid.json')
+    config_file = os.path.join(model_path, 'config/ESPnet_decoder_camVid.json')
     config = json.load(open(config_file))
 
     #set file name
@@ -308,6 +308,8 @@ if __name__ == '__main__':
 
         # train for one epoch
         # We consider 1 epoch with all the training data (at different scales)
+        lossVal, overall_acc_val, per_class_acc_val, per_class_iu_val, mIOU_val = val(classes, val_data_loader, model,
+                                                                                      criteria)
         for i in train_data_loaders:
             lossTr, overall_acc_tr, per_class_acc_tr, per_class_iu_tr, mIOU_tr = train(classes,i,model, criteria, optimizer, epoch)
 

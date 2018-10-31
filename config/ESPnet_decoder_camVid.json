@@ -14,12 +14,12 @@
     "name":"ESpnet_2_8_decoder"
   },
   "DATA":{
-    "name":"cityscape",
+    "name":"camVid",
     "data_dir":"data_loader/camVid/",
-    "cached_data_file":"city.p",
-    "classes": 20,
-    "width":1024,
-    "height":512,
+    "cached_data_file":"camVid.p",
+    "classes": 12,
+    "width":480,
+    "height":360,
     "scale_in":1,
     "val_data_dir":"/home/zhengxiawu/data/cityscapes/leftImg8bit/val",
     "img_suffix":"png",

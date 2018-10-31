@@ -24,8 +24,12 @@ class iouEval:
         return hist
 
     def addBatch(self, predict, gth):
-        predict = predict.cpu().numpy().flatten()
-        gth = gth.cpu().numpy().flatten()
+        if type(predict).__module__ == np.__name__:
+            predict = predict.flatten()
+            gth = gth.flatten()
+        else:
+            predict = predict.cpu().numpy().flatten()
+            gth = gth.cpu().numpy().flatten()
 
         epsilon = 0.00000001
         hist = self.compute_hist(predict, gth)
@@ -33,7 +37,11 @@ class iouEval:
         per_class_acc = np.diag(hist) / (hist.sum(1) + epsilon)
         per_class_iu = np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist) + epsilon)
         mIou = np.nanmean(per_class_iu)
-
+        #print mIou
+        if self.hist == None:
+            self.hist = hist
+        else:
+            self.hist += hist
         self.overall_acc +=overall_acc
         self.per_class_acc += per_class_acc
         self.per_class_iu += per_class_iu
