@@ -15,7 +15,7 @@
     "name":"camVid",
     "data_dir":"data_loader/camVid/",
     "cached_data_file":"camVid.p",
-    "classes": 20,
+    "classes": 12,
     "width":480,
     "height":360,
     "scale_in":8,
