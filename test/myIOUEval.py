@@ -4,7 +4,7 @@ import numpy as np
 #adapted from https://github.com/shelhamer/fcn.berkeleyvision.org/blob/master/score.py
 
 class iouEval:
-    def __init__(self, nClasses, data_length,ignore_label=None):
+    def __init__(self, nClasses, data_length,ignore_label=[]):
         self.nClasses = nClasses
         self.data_length = data_length
         self.ignore_label = ignore_label
@@ -52,7 +52,8 @@ class iouEval:
     def caculate_per_class_iu(self):
         class_iu = np.zeros(self.nClasses)
         for i in self.label:
-            if i in self.ignore_label:
+
+            if  i in self.ignore_label:
                 class_iu[i] = float('nan')
             else:
                 tp = self.hist[i,i]

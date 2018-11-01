@@ -14,7 +14,7 @@ from models.Criteria import CrossEntropyLoss2d
 
 
 
-def val(classes, val_loader, model, criterion,up = None):
+def val(classes, val_loader, model, criterion,up = None, ignore_label = []):
     '''
     :param args: general arguments
     :param val_loader: loaded for validation dataset
@@ -25,7 +25,7 @@ def val(classes, val_loader, model, criterion,up = None):
     #switch to evaluation mode
     model.eval()
 
-    iouEvalVal = iouEval(classes,len(val_loader))
+    iouEvalVal = iouEval(classes,len(val_loader),ignore_label)
 
 
     total_batches = len(val_loader)
@@ -60,9 +60,9 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/ESPnet_encoder_cityscape.json')
-    weight_file = '/home/zhengxiawu/work/real_time_seg/pretrained/encoder/espnet_p_2_q_8.pth'
-    mode = 'test'
+    config_file = os.path.join(model_path, 'config/ESPnet_decoder_camVid.json')
+    weight_file = '/home/zhengxiawu/work/real_time_seg/para/Espnet_camVid_batch_32/best.pth'
+    mode = 'train'
     config = json.load(open(config_file))
 
     #set file name
@@ -80,6 +80,7 @@ if __name__ == '__main__':
     val_scale = config['DATA']['val_args']['scale']
     batch_size = config['DATA']['train_args']['batch_size']
     data_name = config['DATA']['name']
+    ignore_label = config['DATA']['ignore_label']
 
     #network hyper parameters
     lr = config['lr']
@@ -91,7 +92,7 @@ if __name__ == '__main__':
     else:
         up = None
     #set GPU
-    os.environ['CUDA_VISIBLE_DEVICES'] = str(config['gpu_num'])
+    os.environ['CUDA_VISIBLE_DEVICES'] = ''
     #load the dataset
 
     data = pickle.load(open(data_cache_file, "rb"))
@@ -127,6 +128,6 @@ if __name__ == '__main__':
     cudnn.benchmark = True
     start_epoch = 0
 
-    overall_acc_val, per_class_acc_val, per_class_iu_val, mIOU_val = val(classes, val_data_loader, model,criteria,up)
+    overall_acc_val, per_class_acc_val, per_class_iu_val, mIOU_val = val(classes, val_data_loader, model,criteria,up,ignore_label)
     print mIOU_val
     print per_class_iu_val

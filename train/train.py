@@ -6,7 +6,7 @@ import pickle
 import data_loader.DataSet as  myDataLoader
 import data_loader.Transforms as myTransforms
 from data_loader import loadData
-from test.IOUEval import iouEval
+from test.myIOUEval import iouEval
 from torch.autograd import Variable
 import torch.backends.cudnn as cudnn
 from utils import VisualizeGraph as viz
@@ -14,7 +14,7 @@ from models.Criteria import CrossEntropyLoss2d
 
 
 
-def val(classes, val_loader, model, criterion):
+def val(classes, val_loader, model, criterion,ignore_label):
     '''
     :param args: general arguments
     :param val_loader: loaded for validation dataset
@@ -24,12 +24,9 @@ def val(classes, val_loader, model, criterion):
     '''
     #switch to evaluation mode
     model.eval()
-
-    iouEvalVal = iouEval(classes)
-
     epoch_loss = []
-
     total_batches = len(val_loader)
+    iouEvalVal = iouEval(classes,total_batches,ignore_label)
     for i, (input, target) in enumerate(val_loader):
         start_time = time.time()
 
@@ -48,7 +45,6 @@ def val(classes, val_loader, model, criterion):
         epoch_loss.append(loss.item())
 
         time_taken = time.time() - start_time
-
         # compute the confusion matrix
         iouEvalVal.addBatch(output.max(1)[1].data, target_var.data)
 
@@ -72,11 +68,12 @@ def train(classes, train_loader, model, criterion, optimizer, epoch):
     # switch to train mode
     model.train()
 
-    iouEvalTrain = iouEval(classes)
+
 
     epoch_loss = []
 
     total_batches = len(train_loader)
+    iouEvalTrain = iouEval(classes,total_batches)
     for i, (input, target) in enumerate(train_loader):
         start_time = time.time()
 
@@ -194,6 +191,7 @@ if __name__ == '__main__':
     val_scale = config['DATA']['val_args']['scale']
     batch_size = config['DATA']['train_args']['batch_size']
     data_name = config['DATA']['name']
+    ignore_label = config['DATA']['ignore_label']
 
     #network hyper parameters
     lr = config['lr']
@@ -213,6 +211,22 @@ if __name__ == '__main__':
         data = pickle.load(open(data_cache_file, "rb"))
 
     data['name'] = data_name
+
+    valDataset = myTransforms.Compose([
+        myTransforms.Normalize(mean=data['mean'], std=data['std']),
+        myTransforms.Scale(width, height),
+        myTransforms.ToTensor(scale_in),
+        #
+    ])
+    val_data_loader = torch.utils.data.DataLoader(
+        myDataLoader.MyDataset(data['valIm'], data['valAnnot'], transform=valDataset,data_name=data_name),
+        batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True)
+
+    for i, (input, target) in enumerate(val_data_loader):
+        start_time = time.time()
+
+        input = input.cuda()
+        target = target.cuda()
     #get model
     if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
         from models import Espnet
@@ -257,15 +271,7 @@ if __name__ == '__main__':
 
     #get data_loaders
     train_data_loaders = multi_scale_loader(scales,random_crop_size,scale_in, batch_size, data)
-    valDataset = myTransforms.Compose([
-        myTransforms.Normalize(mean=data['mean'], std=data['std']),
-        myTransforms.Scale(width, height),
-        myTransforms.ToTensor(scale_in),
-        #
-    ])
-    val_data_loader = torch.utils.data.DataLoader(
-        myDataLoader.MyDataset(data['valIm'], data['valAnnot'], transform=valDataset),
-        batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True)
+
 
     cudnn.benchmark = True
     start_epoch = 0
@@ -308,13 +314,11 @@ if __name__ == '__main__':
 
         # train for one epoch
         # We consider 1 epoch with all the training data (at different scales)
-        lossVal, overall_acc_val, per_class_acc_val, per_class_iu_val, mIOU_val = val(classes, val_data_loader, model,
-                                                                                      criteria)
         for i in train_data_loaders:
             lossTr, overall_acc_tr, per_class_acc_tr, per_class_iu_tr, mIOU_tr = train(classes,i,model, criteria, optimizer, epoch)
 
         # evaluate on validation set
-        lossVal, overall_acc_val, per_class_acc_val, per_class_iu_val, mIOU_val = val(classes, val_data_loader, model, criteria)
+        lossVal, overall_acc_val, per_class_acc_val, per_class_iu_val, mIOU_val = val(classes, val_data_loader, model, criteria,ignore_label)
 
         #save check point
         if (epoch+1)%save_step == 0:
