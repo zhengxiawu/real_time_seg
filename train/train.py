@@ -173,13 +173,14 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/ESPnet_decoder_camVid.json')
+    config_file = os.path.join(model_path, 'config/ERFnet_decoder_camVid.json')
     config = json.load(open(config_file))
 
     #set file name
     data_dir = os.path.join(model_path,config['DATA']['data_dir'])
     data_cache_file = os.path.join(data_dir,config['DATA']['cached_data_file'])
     save_dir = os.path.join(model_path, 'para', config['name'])+'/'
+    assert not os.path.isdir(save_dir)
 
     #data hyper parameters
     classes = config['DATA']['classes']
@@ -235,10 +236,15 @@ if __name__ == '__main__':
             model = Espnet.ESPNet(classes, 2, 8, pre_train_path)
         else:
             model = Espnet.ESPNet(classes, 2, 8)
-
     elif config['MODEL']['name'] == 'ESpnet_2_8':
         from models import Espnet
         model = Espnet.ESPNet_Encoder(classes, 2, 8)
+    elif config['MODEL']['name'] == 'EDAnet':
+        from models import EDANet
+        model = EDANet.EDANet(classes)
+    elif config['MODEL']['name'] == 'ERFnet':
+        from models import ERFnet
+        model = ERFnet.Net(classes)
 
     model = model.cuda()
 
@@ -321,33 +327,33 @@ if __name__ == '__main__':
         lossVal, overall_acc_val, per_class_acc_val, per_class_iu_val, mIOU_val = val(classes, val_data_loader, model, criteria,ignore_label)
 
         #save check point
-        if (epoch+1)%save_step == 0:
-            save_checkpoint({
-                'epoch': epoch + 1,
-                'arch': str(model),
-                'state_dict': model.state_dict(),
-                'optimizer': optimizer.state_dict(),
-                'lossTr': lossTr,
-                'lossVal': lossVal,
-                'iouTr': mIOU_tr,
-                'iouVal': mIOU_val,
-                'lr': lr
-            }, save_dir + 'checkpoint.pth.tar')
-            # save the model also
-            model_file_name = save_dir + 'model_' + str(epoch + 1) + '.pth'
-            torch.save(model.state_dict(), model_file_name)
-            with open(save_dir + 'acc_' + str(epoch) + '.txt', 'w') as log:
-                log.write(
-                    "\nEpoch: %d\t Overall Acc (Tr): %.4f\t Overall Acc (Val): %.4f\t mIOU (Tr): %.4f\t mIOU (Val): %.4f" % (
-                    epoch, overall_acc_tr, overall_acc_val, mIOU_tr, mIOU_val))
-                log.write('\n')
-                log.write('Per Class Training Acc: ' + str(per_class_acc_tr))
-                log.write('\n')
-                log.write('Per Class Validation Acc: ' + str(per_class_acc_val))
-                log.write('\n')
-                log.write('Per Class Training mIOU: ' + str(per_class_iu_tr))
-                log.write('\n')
-                log.write('Per Class Validation mIOU: ' + str(per_class_iu_val))
+        # if (epoch+1)%save_step == 0:
+        #     save_checkpoint({
+        #         'epoch': epoch + 1,
+        #         'arch': str(model),
+        #         'state_dict': model.state_dict(),
+        #         'optimizer': optimizer.state_dict(),
+        #         'lossTr': lossTr,
+        #         'lossVal': lossVal,
+        #         'iouTr': mIOU_tr,
+        #         'iouVal': mIOU_val,
+        #         'lr': lr
+        #     }, save_dir + 'checkpoint.pth.tar')
+        #     # save the model also
+        #     model_file_name = save_dir + 'model_' + str(epoch + 1) + '.pth'
+        #     torch.save(model.state_dict(), model_file_name)
+        #     with open(save_dir + 'acc_' + str(epoch) + '.txt', 'w') as log:
+        #         log.write(
+        #             "\nEpoch: %d\t Overall Acc (Tr): %.4f\t Overall Acc (Val): %.4f\t mIOU (Tr): %.4f\t mIOU (Val): %.4f" % (
+        #             epoch, overall_acc_tr, overall_acc_val, mIOU_tr, mIOU_val))
+        #         log.write('\n')
+        #         log.write('Per Class Training Acc: ' + str(per_class_acc_tr))
+        #         log.write('\n')
+        #         log.write('Per Class Validation Acc: ' + str(per_class_acc_val))
+        #         log.write('\n')
+        #         log.write('Per Class Training mIOU: ' + str(per_class_iu_tr))
+        #         log.write('\n')
+        #         log.write('Per Class Validation mIOU: ' + str(per_class_iu_val))
 
         #save the best
         if best_mIOU < mIOU_val:

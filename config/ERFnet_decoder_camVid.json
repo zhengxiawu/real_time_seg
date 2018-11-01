@@ -1,6 +1,6 @@
 {
-  "name": "EDAnet_camVid_batch_size_10_multi_scale",
-  "gpu_num":0,
+  "name": "ERFnet_camVid_batch_size_2_multi_scale",
+  "gpu_num":1,
   "visulize": true,
   "resume":false,
   "resumeLoc":null,
@@ -11,7 +11,7 @@
   "pre_train":false,
   "pre_train_path":"",
   "MODEL":{
-    "name":"EDAnet"
+    "name":"ERFnet"
   },
   "DATA":{
     "name":"camVid",
@@ -28,7 +28,7 @@
     "train_args":{
       "scale":[[720,544],[600,456],[360,272],[480,360]],
       "random_crop_size":[16,16,0,0],
-      "batch_size":10
+      "batch_size":2
     },
     "val_args":{
       "scale":[480,360]

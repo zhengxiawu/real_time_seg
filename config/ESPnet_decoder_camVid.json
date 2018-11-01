@@ -1,12 +1,12 @@
 {
-  "name": "Espnet_camVid",
-  "gpu_num":0,
+  "name": "Espnet_camVid_batch_size_2_multi_scale",
+  "gpu_num":2,
   "visulize": true,
   "resume":false,
   "resumeLoc":null,
   "num_epoch":600,
   "lr":5e-4,
-  "lr_step":100,
+  "lr_step":150,
   "save_step":5,
   "pre_train":false,
   "pre_train_path":"",
@@ -26,9 +26,9 @@
     "ignore_label":[11],
 
     "train_args":{
-      "scale":[[480,360]],
-      "random_crop_size":[0],
-      "batch_size":6
+      "scale":[[720,544],[600,456],[360,272],[480,360]],
+      "random_crop_size":[16,16,0,0],
+      "batch_size":2
     },
     "val_args":{
       "scale":[480,360]

@@ -92,7 +92,7 @@ if __name__ == '__main__':
     else:
         up = None
     #set GPU
-    os.environ['CUDA_VISIBLE_DEVICES'] = ''
+    os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     #load the dataset
 
     data = pickle.load(open(data_cache_file, "rb"))
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     ])
     val_data_loader = torch.utils.data.DataLoader(
         myDataLoader.MyDataset(data['valIm'], data['valAnnot'], transform=valDataset,data_name=data['name']),
-        batch_size=1, shuffle=False, num_workers=8, pin_memory=True)
+        batch_size=2, shuffle=False, num_workers=8, pin_memory=True)
 
     cudnn.benchmark = True
     start_epoch = 0

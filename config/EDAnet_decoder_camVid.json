@@ -1,17 +1,17 @@
 {
-  "name": "Espnet_camVid_batch_size_2_multi_scale",
-  "gpu_num":2,
+  "name": "EDAnet_camVid_batch_size_10_multi_scale",
+  "gpu_num":0,
   "visulize": true,
   "resume":false,
   "resumeLoc":null,
   "num_epoch":600,
   "lr":5e-4,
-  "lr_step":150,
+  "lr_step":100,
   "save_step":5,
   "pre_train":false,
   "pre_train_path":"",
   "MODEL":{
-    "name":"ESpnet_2_8_decoder"
+    "name":"EDAnet"
   },
   "DATA":{
     "name":"camVid",
@@ -28,7 +28,7 @@
     "train_args":{
       "scale":[[720,544],[600,456],[360,272],[480,360]],
       "random_crop_size":[16,16,0,0],
-      "batch_size":2
+      "batch_size":10
     },
     "val_args":{
       "scale":[480,360]

@@ -10,7 +10,7 @@ import torch.nn.functional as F
 
 class DownsamplerBlock (nn.Module):
     def __init__(self, ninput, noutput):
-        super(DownsamplerBlock).__init__()
+        super(DownsamplerBlock,self).__init__()
 
         self.conv = nn.Conv2d(ninput, noutput-ninput, (3, 3), stride=2, padding=1, bias=True)
         self.pool = nn.MaxPool2d(2, stride=2)
@@ -24,7 +24,7 @@ class DownsamplerBlock (nn.Module):
 
 class non_bottleneck_1d (nn.Module):
     def __init__(self, chann, dropprob, dilated):        
-        super(non_bottleneck_1d).__init__()
+        super(non_bottleneck_1d,self).__init__()
 
         self.conv3x1_1 = nn.Conv2d(chann, chann, (3, 1), stride=1, padding=(1,0), bias=True)
 
@@ -62,7 +62,7 @@ class non_bottleneck_1d (nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self, num_classes):
-        super(Encoder).__init__()
+        super(Encoder,self).__init__()
         self.initial_block = DownsamplerBlock(3,16)
 
         self.layers = nn.ModuleList()
@@ -97,7 +97,7 @@ class Encoder(nn.Module):
 
 class UpsamplerBlock (nn.Module):
     def __init__(self, ninput, noutput):
-        super(UpsamplerBlock).__init__()
+        super(UpsamplerBlock,self).__init__()
         self.conv = nn.ConvTranspose2d(ninput, noutput, 3, stride=2, padding=1, output_padding=1, bias=True)
         self.bn = nn.BatchNorm2d(noutput, eps=1e-3)
 
@@ -108,7 +108,7 @@ class UpsamplerBlock (nn.Module):
 
 class Decoder (nn.Module):
     def __init__(self, num_classes):
-        super(Decoder).__init__()
+        super(Decoder,self).__init__()
 
         self.layers = nn.ModuleList()
 
@@ -135,7 +135,7 @@ class Decoder (nn.Module):
 #ERFNet
 class Net(nn.Module):
     def __init__(self, num_classes, encoder=None):  #use encoder to pass pretrained encoder
-        super(Net).__init__()
+        super(Net,self).__init__()
 
         if (encoder == None):
             self.encoder = Encoder(num_classes)

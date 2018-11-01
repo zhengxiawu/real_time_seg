@@ -133,11 +133,11 @@ class EDANet(nn.Module):
         output = self.project_layer(output)
 
         # Bilinear interpolation x8
-        output = F.interpolate(output,scale_factor = 8,mode = 'bilinear',align_corners=True)
+        output = F.upsample(output,scale_factor = 8,mode = 'bilinear',align_corners=True)
 
         # Bilinear interpolation x2 (inference only)
-        if not self.training:
-            output = F.interpolate(output, scale_factor=2, mode='bilinear',align_corners=True)
+        # if not self.training:
+        #     output = F.interpolate(output, scale_factor=2, mode='bilinear',align_corners=True)
 
         return output
 
