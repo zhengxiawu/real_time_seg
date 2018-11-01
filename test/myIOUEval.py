@@ -8,6 +8,7 @@ class iouEval:
         self.nClasses = nClasses
         self.data_length = data_length
         self.ignore_label = ignore_label
+        self.label = range(nClasses)
         self.reset()
 
     def reset(self):
@@ -48,13 +49,29 @@ class iouEval:
         # self.per_class_acc += per_class_acc
         # self.per_class_iu += per_class_iu
         # self.mIOU += mIou
-
+    def caculate_per_class_iu(self):
+        class_iu = np.zeros(self.nClasses)
+        for i in self.label:
+            if i in self.ignore_label:
+                class_iu[i] = float('nan')
+            else:
+                tp = self.hist[i,i]
+                fn = self.hist[i,:].sum() - tp
+                notIgnored = [l for l in self.label if not l in self.ignore_label and l!=i]
+                fp = self.hist[notIgnored, i].sum()
+                denom = (tp + fp + fn)
+                if denom == 0:
+                    class_iu[i] = float('nan')
+                else:
+                    class_iu[i] = float(tp) / denom
+        return class_iu
     def getMetric(self):
         epsilon = 0.0000001
         #overall accuracy
         overall_acc = np.diag(self.hist).sum() / (self.hist.sum() + epsilon)
         per_class_acc = np.diag(self.hist) / (self.hist.sum(1) + epsilon)
-        per_class_iu = np.diag(self.hist) / (self.hist.sum(1) + self.hist.sum(0) - np.diag(self.hist) + epsilon)
+        per_class_iu = self.caculate_per_class_iu()
+        # per_class_iu = np.diag(self.hist) / (self.hist.sum(1) + self.hist.sum(0) - np.diag(self.hist) + epsilon)
         mIOU = np.nanmean(per_class_iu)
 
         return overall_acc, per_class_acc, per_class_iu, mIOU

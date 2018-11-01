@@ -130,11 +130,11 @@ def main():
         with torch.no_grad():
             img_variable = Variable(img_tensor)
         img_variable = img_variable.cuda()
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
         time_start = time.time()
         img_out = model(img_variable)
         time_end = time.time()
-        #torch.cuda.synchronize()
+        torch.cuda.synchronize()
 
         total_time += (time_end-time_start)
         print time_end-time_start
