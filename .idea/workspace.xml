@@ -2,12 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="59564cb1-5f72-48c4-81ed-7cf532cb3966" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/EDAnet_decoder_camVid.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/config/ERFnet_decoder_camVid.json" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/models/EDANet.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/models/ERFnet.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config/EDAnet_decoder_camVid.json" afterPath="$PROJECT_DIR$/config/EDAnet_decoder_camVid.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config/ERFnet_decoder_camVid.json" afterPath="$PROJECT_DIR$/config/ERFnet_decoder_camVid.json" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/config/ESPnet_decoder_camVid.json" afterPath="$PROJECT_DIR$/config/ESPnet_decoder_camVid.json" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/EDANet.py" afterPath="$PROJECT_DIR$/models/EDANet.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/models/ERFnet.py" afterPath="$PROJECT_DIR$/models/ERFnet.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/test_iOU.py" afterPath="$PROJECT_DIR$/test/test_iOU.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/train/train.py" afterPath="$PROJECT_DIR$/train/train.py" />
     </list>
