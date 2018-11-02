@@ -1,5 +1,5 @@
 {
-  "name": "ERFnet_camVid_batch_size_2_multi_scale",
+  "name": "Enet_camVid_batch_size_2_multi_scale",
   "gpu_num":1,
   "visulize": true,
   "resume":false,
@@ -11,7 +11,7 @@
   "pre_train":false,
   "pre_train_path":"",
   "MODEL":{
-    "name":"ERFnet"
+    "name":"Enet"
   },
   "DATA":{
     "name":"camVid",

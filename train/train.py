@@ -173,7 +173,7 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/ERFnet_decoder_camVid.json')
+    config_file = os.path.join(model_path, 'config/Enet_decoder_camVid.json')
     config = json.load(open(config_file))
 
     #set file name
@@ -245,6 +245,9 @@ if __name__ == '__main__':
     elif config['MODEL']['name'] == 'ERFnet':
         from models import ERFnet
         model = ERFnet.Net(classes)
+    elif config['MODEL']['name'] == 'Enet':
+        from models import Enet
+        model = Enet.ENet(classes)
 
     model = model.cuda()
 
