@@ -29,9 +29,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-from utils.helpers import maybe_download
-from utils.layer_factory import batchnorm, conv1x1, conv3x3, convbnrelu, CRPBlock
+from helpers import maybe_download
+from layer_factory import batchnorm, conv1x1, conv3x3, convbnrelu, CRPBlock
 
 
 data_info = {
@@ -140,6 +141,7 @@ class MBv2(nn.Module):
         l3 = self.crp1(l3)
         
         out_segm = self.segm(l3)
+        out_segm = F.upsample(out_segm,scale_factor = 4,mode = 'bilinear',align_corners=True)
 
         return out_segm
 
@@ -158,7 +160,7 @@ class MBv2(nn.Module):
         return nn.Sequential(*layers)
 
 
-def mbv2(num_classes, pretrained=True, **kwargs):
+def mbv2(num_classes, pretrained=False, **kwargs):
     """Constructs the network.
 
     Args:

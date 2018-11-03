@@ -11,6 +11,7 @@ from torch.autograd import Variable
 import torch.backends.cudnn as cudnn
 from utils import VisualizeGraph as viz
 from models.Criteria import CrossEntropyLoss2d
+from models.Model import get_model
 
 
 
@@ -173,14 +174,14 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/Enet_decoder_camVid.json')
+    config_file = os.path.join(model_path, 'config/RF_LW_resnet_50_decoder_camVid.json')
     config = json.load(open(config_file))
 
     #set file name
     data_dir = os.path.join(model_path,config['DATA']['data_dir'])
     data_cache_file = os.path.join(data_dir,config['DATA']['cached_data_file'])
     save_dir = os.path.join(model_path, 'para', config['name'])+'/'
-    assert not os.path.isdir(save_dir)
+    assert not os.path.isfile(os.path.join(save_dir,'best.pth'))
 
     #data hyper parameters
     classes = config['DATA']['classes']
@@ -229,25 +230,7 @@ if __name__ == '__main__':
         input = input.cuda()
         target = target.cuda()
     #get model
-    if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
-        from models import Espnet
-        if config['pre_train']:
-            pre_train_path = os.path.join(model_path,config['pre_train_path'])
-            model = Espnet.ESPNet(classes, 2, 8, pre_train_path)
-        else:
-            model = Espnet.ESPNet(classes, 2, 8)
-    elif config['MODEL']['name'] == 'ESpnet_2_8':
-        from models import Espnet
-        model = Espnet.ESPNet_Encoder(classes, 2, 8)
-    elif config['MODEL']['name'] == 'EDAnet':
-        from models import EDANet
-        model = EDANet.EDANet(classes)
-    elif config['MODEL']['name'] == 'ERFnet':
-        from models import ERFnet
-        model = ERFnet.Net(classes)
-    elif config['MODEL']['name'] == 'Enet':
-        from models import Enet
-        model = Enet.ENet(classes)
+    model = get_model(config['MODEL']['name'],classes)
 
     model = model.cuda()
 

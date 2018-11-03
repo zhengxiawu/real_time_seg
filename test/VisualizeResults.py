@@ -14,7 +14,8 @@ import torch.backends.cudnn as cudnn
 from test.IOUEval import iouEval
 import scipy.misc as m
 from data_loader import DataSet
-cudnn.benchmark = True
+cudnn.benchmark = False
+from models.Model import get_model
 
 pallete = [128, 64, 128,
            244, 35, 232,
@@ -73,16 +74,17 @@ def main():
     # load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     model_num = 90
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
     # load config
-    config_file = os.path.join(model_path, 'config/ESPnet_decoder_cityscape.json')
+    config_file = os.path.join(model_path, 'config/EDAnet_decoder_camVid.json')
     config = json.load(open(config_file))
 
     # set file name
     data_dir = os.path.join(model_path, config['DATA']['data_dir'])
     data_cache_file = os.path.join(data_dir, config['DATA']['cached_data_file'])
     result_save_dir = os.path.join(model_path, 'result', config['name'])
-    weight_file = '/home/zhengxiawu/work/real_time_seg/pretrained/decoder/espnet_p_2_q_8.pth'
-
+    weight_file = '/home/zhengxiawu/work/real_time_seg/para/EDAnet_camVid_batch_size_10_multi_scale/best.pth'
+    GPU = False
     assert os.path.isfile(weight_file),"no weight file!!!"
 
     # data hyper parameters
@@ -102,15 +104,12 @@ def main():
     data = pickle.load(open(data_cache_file, "rb"))
     image_list = data['valIm']
     up = torch.nn.Upsample(scale_factor=scale_in, mode='bilinear')
-    up.cuda()
-    if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
-        from models import Espnet
-        model = Espnet.ESPNet(classes, 2, 8, mode='test')
-    elif config['MODEL']['name'] == 'ESpnet_2_8':
-        from models import Espnet
-        model = Espnet.ESPNet_Encoder(classes, 2, 8, mode='test')
+    if GPU:
+        up.cuda()
+    model = get_model(config['MODEL']['name'], classes,mode='train')
     model.load_state_dict(torch.load(weight_file))
-    model.cuda()
+    if GPU:
+        model.cuda()
     model.eval()
     total_time = 0
     for i, imgName in enumerate(image_list):
@@ -129,7 +128,8 @@ def main():
         img_tensor = torch.unsqueeze(img_tensor, 0)  # add a batch dimension
         with torch.no_grad():
             img_variable = Variable(img_tensor)
-        img_variable = img_variable.cuda()
+        if GPU:
+            img_variable = img_variable.cuda()
         torch.cuda.synchronize()
         time_start = time.time()
         img_out = model(img_variable)
@@ -141,8 +141,10 @@ def main():
 
         if scale_in > 1:
             img_out = up(img_out)
-
-        classMap_numpy = img_out[0].max(0)[1].byte().cpu().data.numpy()
+        if GPU:
+            classMap_numpy = img_out[0].max(0)[1].byte().cpu().data.numpy()
+        else:
+            classMap_numpy = img_out[0].max(0)[1].byte().data.numpy()
 
         if i % 100 == 0:
             print(i)
@@ -156,7 +158,7 @@ def main():
             classMap_numpy_color.putpalette(pallete)
             classMap_numpy_color.save(result_save_dir + os.sep + 'c_' + name.replace(img_suffix, 'png'))
 
-        cv2.imwrite(result_save_dir + os.sep + name.replace(img_suffix, 'png'), classMap_numpy)
+        #cv2.imwrite(result_save_dir + os.sep + name.replace(img_suffix, 'png'), classMap_numpy)
 
     print 'inference time is:'+str(float(total_time)/float(len(image_list)))
     print 'done'

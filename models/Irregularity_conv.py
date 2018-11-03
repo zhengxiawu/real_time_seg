@@ -122,15 +122,25 @@ class CDilated(nn.Module):
         :param d: optional dilation rate
         '''
         super(CDilated,self).__init__()
+        self.conv1x1 = nn.Conv2d(nIn, nOut, kernel_size=1)
+        self.conv1x1_2 = nn.Conv2d(nOut, nOut, kernel_size=1)
         padding = int((kSize - 1)/2) * d
-        self.conv = nn.Conv2d(nIn, nOut, (kSize, kSize), stride=stride, padding=(padding, padding), bias=False, dilation=d)
+        self.conv1xk = nn.Conv2d(nIn, nOut, (1, kSize), stride=stride, padding=(0, padding), bias=False, dilation=d)
+        self.convkx1 = nn.Conv2d(nOut, nOut, (kSize, 1), stride=stride, padding=(padding, 0), bias=False, dilation=d)
 
     def forward(self, input):
         '''
         :param input: input feature map
         :return: transformed feature map
         '''
-        output = self.conv(input)
+        conv1_1 = self.conv1x1(input)
+        conv1_k = self.conv1xk(input)
+        add_conv_1 = conv1_1+conv1_k
+
+        conv1_1_2 = self.conv1x1_2(add_conv_1)
+        conv_k_1 = self.convkx1(add_conv_1)
+
+        output = conv1_1_2 + conv_k_1
         return output
 
 class DownSamplerB(nn.Module):

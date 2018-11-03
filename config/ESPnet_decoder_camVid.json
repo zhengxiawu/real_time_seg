@@ -1,5 +1,5 @@
 {
-  "name": "Espnet_camVid_batch_size_2_multi_scale",
+  "name": "ESPnet_camVid_batch_size_2_multi_scale",
   "gpu_num":2,
   "visulize": true,
   "resume":false,

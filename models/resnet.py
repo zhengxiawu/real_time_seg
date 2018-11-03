@@ -33,8 +33,8 @@ import torch
 
 import numpy as np
 
-from utils.helpers import maybe_download
-from utils.layer_factory import conv1x1, conv3x3, CRPBlock
+from helpers import maybe_download
+from layer_factory import conv1x1, conv3x3, CRPBlock
 
 data_info = {
     7 : 'Person',
@@ -229,10 +229,11 @@ class ResNetLW(nn.Module):
         x1 = self.mflow_conv_g4_pool(x1)
         
         out = self.clf_conv(x1)
+        out = F.upsample(out, scale_factor=4, mode='bilinear', align_corners=True)
         return out
 
 
-def rf_lw50(num_classes, pretrained=True, **kwargs):
+def rf_lw50(num_classes, pretrained=False, **kwargs):
     model = ResNetLW(Bottleneck, [3, 4, 6, 3], num_classes=num_classes, **kwargs)
     if pretrained:
         dataset = data_info.get(num_classes, None)
@@ -243,7 +244,7 @@ def rf_lw50(num_classes, pretrained=True, **kwargs):
             model.load_state_dict(maybe_download(key, url), strict=False)
     return model
 
-def rf_lw101(num_classes, pretrained=True, **kwargs):
+def rf_lw101(num_classes, pretrained=False, **kwargs):
     model = ResNetLW(Bottleneck, [3, 4, 23, 3], num_classes=num_classes, **kwargs)
     if pretrained:
         dataset = data_info.get(num_classes, None)
@@ -254,7 +255,7 @@ def rf_lw101(num_classes, pretrained=True, **kwargs):
             model.load_state_dict(maybe_download(key, url), strict=False)
     return model
 
-def rf_lw152(num_classes, pretrained=True, **kwargs):
+def rf_lw152(num_classes, pretrained=False, **kwargs):
     model = ResNetLW(Bottleneck, [3, 8, 36, 3], num_classes=num_classes, **kwargs)
     if pretrained:
         dataset = data_info.get(num_classes, None)

@@ -11,7 +11,9 @@ from torch.autograd import Variable
 import torch.backends.cudnn as cudnn
 from utils import VisualizeGraph as viz
 from models.Criteria import CrossEntropyLoss2d
-
+from models.Model import get_model
+import torch.backends.cudnn as cudnn
+cudnn.benchmark = True
 
 
 def val(classes, val_loader, model, criterion,up = None, ignore_label = []):
@@ -27,28 +29,37 @@ def val(classes, val_loader, model, criterion,up = None, ignore_label = []):
 
     iouEvalVal = iouEval(classes,len(val_loader),ignore_label)
 
-
+    total_time = 0
     total_batches = len(val_loader)
     for i, (input, target) in enumerate(val_loader):
-        start_time = time.time()
 
-        input = input.cuda()
-        target = target.cuda()
         with torch.no_grad():
-            input_var = torch.autograd.Variable(input)
-            target_var = torch.autograd.Variable(target)
+            img_variable = Variable(input)
+            target = target.cuda()
+        img_variable = img_variable.cuda()
+        target_var = target.cuda()
+        # input = input.cuda()
+        # target = target.cuda()
+        # with torch.no_grad():
+        #     input_var = torch.autograd.Variable(input)
+        #     target_var = torch.autograd.Variable(target)
 
         # run the mdoel
-        output = model(input_var)
-
-
-        time_taken = time.time() - start_time
+        torch.cuda.synchronize()
+        time_start = time.time()
+        output = model(img_variable)
+        time_end = time.time()
+        torch.cuda.synchronize()
+        time_taken = time_end - time_start
+        total_time += time_taken
         if up is not None:
             output = up(output)
         # compute the confusion matrix
         iouEvalVal.addBatch(output.max(1)[1].data, target_var.data)
 
-        print('[%d/%d] time: %.2f' % (i, total_batches,  time_taken))
+        print('[%d/%d] time: %.16f' % (i, total_batches,  time_taken))
+
+    print ('total time is:'+str(float(total_time)/float(total_batches)))
 
 
     overall_acc, per_class_acc, per_class_iu, mIOU = iouEvalVal.getMetric()
@@ -60,9 +71,9 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/ESPnet_decoder_camVid.json')
-    weight_file = '/home/zhengxiawu/work/real_time_seg/para/Espnet_camVid_batch_32/best.pth'
-    mode = 'train'
+    config_file = os.path.join(model_path, 'config/ESPnet_decoder_cityscape.json')
+    weight_file = '/home/zhengxiawu/work/real_time_seg/pretrained/decoder/espnet_p_2_q_8.pth'
+    mode = 'test'
     config = json.load(open(config_file))
 
     #set file name
@@ -99,12 +110,7 @@ if __name__ == '__main__':
 
     data['name'] = data_name
     #get model
-    if config['MODEL']['name'] == 'ESpnet_2_8_decoder':
-        from models import Espnet
-        model = Espnet.ESPNet(classes, 2, 8, mode=mode)
-    elif config['MODEL']['name'] == 'ESpnet_2_8':
-        from models import Espnet
-        model = Espnet.ESPNet_Encoder(classes, 2, 8)
+    model = get_model(config['MODEL']['name'], classes,mode='test')
     model.load_state_dict(torch.load(weight_file))
     model.cuda()
     model.eval()
@@ -123,7 +129,7 @@ if __name__ == '__main__':
     ])
     val_data_loader = torch.utils.data.DataLoader(
         myDataLoader.MyDataset(data['valIm'], data['valAnnot'], transform=valDataset,data_name=data['name']),
-        batch_size=2, shuffle=False, num_workers=8, pin_memory=True)
+        batch_size=1, shuffle=False, num_workers=1, pin_memory=True)
 
     cudnn.benchmark = True
     start_epoch = 0
