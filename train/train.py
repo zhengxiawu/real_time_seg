@@ -174,7 +174,7 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/RF_LW_resnet_50_decoder_camVid.json')
+    config_file = os.path.join(model_path, 'config/RF_LW_resnet_152_camVid.json')
     config = json.load(open(config_file))
 
     #set file name

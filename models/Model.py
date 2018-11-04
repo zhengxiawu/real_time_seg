@@ -28,6 +28,12 @@ def get_model(model_name,classes,pre_train=False,mode = 'train'):
     elif model_name == 'RF_LW_resnet_50':
         from models import resnet
         model = resnet.rf_lw50(classes)
+    elif model_name == 'RF_LW_resnet_101':
+        from models import resnet
+        model = resnet.rf_lw101(classes)
+    elif model_name == 'RF_LW_resnet_152':
+        from models import resnet
+        model = resnet.rf_lw152(classes)
     else:
         raise NotImplementedError
     return model

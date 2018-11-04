@@ -1,6 +1,6 @@
 {
-  "name": "RF_LW_resnet_50_camVid_batch_size_2_multi_scale",
-  "gpu_num":1,
+  "name": "RF_LW_resnet_101_camVid_batch_size_2_multi_scale",
+  "gpu_num":2,
   "visulize": true,
   "resume":false,
   "resumeLoc":null,
@@ -11,7 +11,7 @@
   "pre_train":false,
   "pre_train_path":"",
   "MODEL":{
-    "name":"RF_LW_resnet_50"
+    "name":"RF_LW_resnet_101"
   },
   "DATA":{
     "name":"camVid",
