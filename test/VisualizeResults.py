@@ -74,16 +74,16 @@ def main():
     # load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     model_num = 90
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    os.environ['CUDA_VISIBLE_DEVICES'] = '2'
     # load config
-    config_file = os.path.join(model_path, 'config/EDAnet_decoder_camVid.json')
+    config_file = os.path.join(model_path, 'config/RF_LW_resnet_152_camVid.json')
     config = json.load(open(config_file))
 
     # set file name
     data_dir = os.path.join(model_path, config['DATA']['data_dir'])
     data_cache_file = os.path.join(data_dir, config['DATA']['cached_data_file'])
     result_save_dir = os.path.join(model_path, 'result', config['name'])
-    weight_file = '/home/zhengxiawu/work/real_time_seg/para/EDAnet_camVid_batch_size_10_multi_scale/best.pth'
+    weight_file = '/home/zhengxiawu/work/real_time_seg/para/RF_LW_resnet_152_camVid_batch_size_2_multi_scale/best.pth'
     GPU = False
     assert os.path.isfile(weight_file),"no weight file!!!"
 

@@ -174,7 +174,7 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/RF_LW_resnet_152_camVid.json')
+    config_file = os.path.join(model_path, 'config/EDAnet_cityscape.json')
     config = json.load(open(config_file))
 
     #set file name
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     ])
     val_data_loader = torch.utils.data.DataLoader(
         myDataLoader.MyDataset(data['valIm'], data['valAnnot'], transform=valDataset,data_name=data_name),
-        batch_size=batch_size, shuffle=False, num_workers=8, pin_memory=True)
+        batch_size=1, shuffle=False, num_workers=8, pin_memory=True)
 
     for i, (input, target) in enumerate(val_data_loader):
         start_time = time.time()
