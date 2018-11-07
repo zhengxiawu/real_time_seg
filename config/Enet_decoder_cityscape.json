@@ -1,6 +1,6 @@
 {
-  "name": "Enet_camVid_batch_size_2_multi_scale",
-  "gpu_num":2,
+  "name": "Enet_cityscape_batch_2",
+  "gpu_num":1,
   "visulize": true,
   "resume":false,
   "resumeLoc":null,
@@ -14,24 +14,24 @@
     "name":"Enet"
   },
   "DATA":{
-    "name":"camVid",
-    "data_dir":"data_loader/camVid/",
-    "cached_data_file":"camVid.p",
-    "classes": 12,
-    "width":480,
-    "height":360,
+    "name":"cityscape",
+    "data_dir":"data_loader/cityscape/",
+    "cached_data_file":"cityscape.p",
+    "classes": 20,
+    "width":1024,
+    "height":512,
     "scale_in":1,
     "val_data_dir":"/home/zhengxiawu/data/cityscapes/leftImg8bit/val",
     "img_suffix":"png",
-    "ignore_label":[11],
+    "ignore_label":[19],
 
     "train_args":{
-      "scale":[[720,544],[600,456],[360,272],[480,360]],
-      "random_crop_size":[16,16,0,0],
+      "scale":[[1536,768],[1280,720],[768,384],[512, 256],[1024,512]],
+      "random_crop_size":[100,100,32,0,32],
       "batch_size":2
     },
     "val_args":{
-      "scale":[480,360]
+      "scale":[1024,512]
     }
   }
 }

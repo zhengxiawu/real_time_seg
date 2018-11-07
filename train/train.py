@@ -174,7 +174,7 @@ if __name__ == '__main__':
     #load config file
     model_path = '/home/zhengxiawu/work/real_time_seg'
     #load config
-    config_file = os.path.join(model_path, 'config/EDAnet_cityscape.json')
+    config_file = os.path.join(model_path, 'config/Enet_decoder_cityscape.json')
     config = json.load(open(config_file))
 
     #set file name
