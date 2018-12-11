@@ -4,28 +4,6 @@ from torch.autograd import Variable
 
 
 class InitialBlock(nn.Module):
-    """The initial block is composed of two branches:
-    1. a main branch which performs a regular convolution with stride 2;
-    2. an extension branch which performs max-pooling.
-
-    Doing both operations in parallel and concatenating their results
-    allows for efficient downsampling and expansion. The main branch
-    outputs 13 feature maps while the extension branch outputs 3, for a
-    total of 16 feature maps after concatenation.
-
-    Keyword arguments:
-    - in_channels (int): the number of input channels.
-    - out_channels (int): the number output channels.
-    - kernel_size (int, optional): the kernel size of the filters used in
-    the convolution layer. Default: 3.
-    - padding (int, optional): zero-padding added to both sides of the
-    input. Default: 0.
-    - bias (bool, optional): Adds a learnable bias to the output if
-    ``True``. Default: False.
-    - relu (bool, optional): When ``True`` ReLU is used as the activation
-    function; otherwise, PReLU is used. Default: True.
-
-    """
 
     def __init__(self,
                  in_channels,
@@ -75,42 +53,7 @@ class InitialBlock(nn.Module):
 
 
 class RegularBottleneck(nn.Module):
-    """Regular bottlenecks are the main building block of ENet.
-    Main branch:
-    1. Shortcut connection.
-
-    Extension branch:
-    1. 1x1 convolution which decreases the number of channels by
-    ``internal_ratio``, also called a projection;
-    2. regular, dilated or asymmetric convolution;
-    3. 1x1 convolution which increases the number of channels back to
-    ``channels``, also called an expansion;
-    4. dropout as a regularizer.
-
-    Keyword arguments:
-    - channels (int): the number of input and output channels.
-    - internal_ratio (int, optional): a scale factor applied to
-    ``channels`` used to compute the number of
-    channels after the projection. eg. given ``channels`` equal to 128 and
-    internal_ratio equal to 2 the number of channels after the projection
-    is 64. Default: 4.
-    - kernel_size (int, optional): the kernel size of the filters used in
-    the convolution layer described above in item 2 of the extension
-    branch. Default: 3.
-    - padding (int, optional): zero-padding added to both sides of the
-    input. Default: 0.
-    - dilation (int, optional): spacing between kernel elements for the
-    convolution described in item 2 of the extension branch. Default: 1.
-    asymmetric (bool, optional): flags if the convolution described in
-    item 2 of the extension branch is asymmetric or not. Default: False.
-    - dropout_prob (float, optional): probability of an element to be
-    zeroed. Default: 0 (no dropout).
-    - bias (bool, optional): Adds a learnable bias to the output if
-    ``True``. Default: False.
-    - relu (bool, optional): When ``True`` ReLU is used as the activation
-    function; otherwise, PReLU is used. Default: True.
-
-    """
+    
 
     def __init__(self,
                  channels,
@@ -216,46 +159,7 @@ class RegularBottleneck(nn.Module):
 
 
 class DownsamplingBottleneck(nn.Module):
-    """Downsampling bottlenecks further downsample the feature map size.
-
-    Main branch:
-    1. max pooling with stride 2; indices are saved to be used for
-    unpooling later.
-
-    Extension branch:
-    1. 2x2 convolution with stride 2 that decreases the number of channels
-    by ``internal_ratio``, also called a projection;
-    2. regular convolution (by default, 3x3);
-    3. 1x1 convolution which increases the number of channels to
-    ``out_channels``, also called an expansion;
-    4. dropout as a regularizer.
-
-    Keyword arguments:
-    - in_channels (int): the number of input channels.
-    - out_channels (int): the number of output channels.
-    - internal_ratio (int, optional): a scale factor applied to ``channels``
-    used to compute the number of channels after the projection. eg. given
-    ``channels`` equal to 128 and internal_ratio equal to 2 the number of
-    channels after the projection is 64. Default: 4.
-    - kernel_size (int, optional): the kernel size of the filters used in
-    the convolution layer described above in item 2 of the extension branch.
-    Default: 3.
-    - padding (int, optional): zero-padding added to both sides of the
-    input. Default: 0.
-    - dilation (int, optional): spacing between kernel elements for the
-    convolution described in item 2 of the extension branch. Default: 1.
-    - asymmetric (bool, optional): flags if the convolution described in
-    item 2 of the extension branch is asymmetric or not. Default: False.
-    - return_indices (bool, optional):  if ``True``, will return the max
-    indices along with the outputs. Useful when unpooling later.
-    - dropout_prob (float, optional): probability of an element to be
-    zeroed. Default: 0 (no dropout).
-    - bias (bool, optional): Adds a learnable bias to the output if
-    ``True``. Default: False.
-    - relu (bool, optional): When ``True`` ReLU is used as the activation
-    function; otherwise, PReLU is used. Default: True.
-
-    """
+    
 
     def __init__(self,
                  in_channels,
@@ -363,43 +267,7 @@ class DownsamplingBottleneck(nn.Module):
 
 
 class UpsamplingBottleneck(nn.Module):
-    """The upsampling bottlenecks upsample the feature map resolution using max
-    pooling indices stored from the corresponding downsampling bottleneck.
-
-    Main branch:
-    1. 1x1 convolution with stride 1 that decreases the number of channels by
-    ``internal_ratio``, also called a projection;
-    2. max unpool layer using the max pool indices from the corresponding
-    downsampling max pool layer.
-
-    Extension branch:
-    1. 1x1 convolution with stride 1 that decreases the number of channels by
-    ``internal_ratio``, also called a projection;
-    2. transposed convolution (by default, 3x3);
-    3. 1x1 convolution which increases the number of channels to
-    ``out_channels``, also called an expansion;
-    4. dropout as a regularizer.
-
-    Keyword arguments:
-    - in_channels (int): the number of input channels.
-    - out_channels (int): the number of output channels.
-    - internal_ratio (int, optional): a scale factor applied to ``in_channels``
-     used to compute the number of channels after the projection. eg. given
-     ``in_channels`` equal to 128 and ``internal_ratio`` equal to 2 the number
-     of channels after the projection is 64. Default: 4.
-    - kernel_size (int, optional): the kernel size of the filters used in the
-    convolution layer described above in item 2 of the extension branch.
-    Default: 3.
-    - padding (int, optional): zero-padding added to both sides of the input.
-    Default: 0.
-    - dropout_prob (float, optional): probability of an element to be zeroed.
-    Default: 0 (no dropout).
-    - bias (bool, optional): Adds a learnable bias to the output if ``True``.
-    Default: False.
-    - relu (bool, optional): When ``True`` ReLU is used as the activation
-    function; otherwise, PReLU is used. Default: True.
-
-    """
+   
 
     def __init__(self,
                  in_channels,
