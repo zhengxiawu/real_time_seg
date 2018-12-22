@@ -89,7 +89,8 @@ class FFM(nn.Module):
         w=self.relu(w)
         w=self.conv2(w)
         w=torch.sigmoid(w)
-        out=F.mul(out,w)+out
+        #out=F.mul(out,w)+out
+        out = out * w + out
         return out
 
 class BiSeNet(nn.Module):
@@ -103,7 +104,7 @@ class BiSeNet(nn.Module):
     def forward(self,x):
         sx=self.spatial_path(x)
         cx1,cx2,tail=self.context_path(x)
-        cx1=F.interpolate(cx1, scale_factor=2, mode='bilinear')
+        cx1=nn.functional.interpolate(cx1, scale_factor=2, mode='bilinear')
         cx2=F.interpolate(cx2, scale_factor=4, mode='bilinear')
         #print(cx1.shape)
         #print(cx2.shape)
@@ -116,11 +117,16 @@ class BiSeNet(nn.Module):
         return out
 
 if __name__=='__main__':
-    x=torch.rand(2,3,512,1024)
+    #x=torch.rand(1,3,512,1024)
+    x1 = torch.rand(1, 3, 544, 736)
+    x2 = torch.rand(1, 3, 456, 600)
+    x3 = torch.rand(1, 3, 272, 360)
+    x4 = torch.rand(1, 3, 360, 480)
     model=BiSeNet()
     model.eval()
-    y=model(x)
-    print(y.shape)
+    for i in [x1,x2,x3,x4]:
+        y=model(i)
+        print(y.shape)
 
 
 

@@ -40,19 +40,19 @@ class Basenet(nn.Module):
         #downsample block 1
         self.downsample_1 = CBR(3,16,3,2)
         self.downsample_2 = CBR(16,64,3,2)
-        self.regular_1 = []
+        self.regular_1 = nn.ModuleList()
         for i in range(5):
             self.regular_1.append(CBR(64,64,3,1))
         self.downsample_3 = CBR(64,128,3,2)
-        self.regular_2 = []
+        self.regular_2 = nn.ModuleList()
         for i in range(8):
             self.regular_2.append(CBR(128, 128, 3, 1))
         self.Upsample_1 = upBR(128,64)
-        self.regular_3 = []
+        self.regular_3 = nn.ModuleList()
         for i in range(2):
             self.regular_3.append(CBR(64, 64, 3, 1))
         self.Upsample_2 = upBR(64, 2*num_classes)
-        self.regular_4 = []
+        self.regular_4 = nn.ModuleList()
         for i in range(2):
             self.regular_4.append(CBR(2*num_classes, 2*num_classes, 3, 1))
         self.Upsample_3 = upBR(2 * num_classes, num_classes)
@@ -94,13 +94,15 @@ class Basenet(nn.Module):
 
 if __name__ == '__main__':
 
-    input = Variable(torch.randn(1,3,512,1024))
-    # for the inference only mode
-    net = Basenet().eval()
-    # for the training mode
-    #net = EDANet().train()
-    output = net(input)
-    print output.size()
+    x1 = torch.rand(1, 3, 544, 736)
+    x2 = torch.rand(1, 3, 456, 600)
+    x3 = torch.rand(1, 3, 272, 360)
+    x4 = torch.rand(1, 3, 360, 480)
+    model = Basenet()
+    model.eval()
+    for i in [x1, x2, x3, x4]:
+        y = model(i)
+        print(y.shape)
 
 
 

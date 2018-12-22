@@ -34,6 +34,12 @@ def get_model(model_name,classes,pre_train=False,mode = 'train'):
     elif model_name == 'RF_LW_resnet_152':
         from models import resnet
         model = resnet.rf_lw152(classes)
+    elif model_name == 'Bisenet':
+        from models import BiSeNet
+        model = BiSeNet.BiSeNet(out_class=classes)
+    elif model_name == 'Basenet':
+        from models import Basenet
+        model = Basenet.Basenet(classes)
     else:
         raise NotImplementedError
     return model
